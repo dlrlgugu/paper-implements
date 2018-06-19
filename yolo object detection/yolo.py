@@ -172,8 +172,8 @@ def predict(sess, image_file):
     image.save(os.path.join("out", image_file), quality=90)
     # Display the results in the notebook
     output_image = scipy.misc.imread(os.path.join("out", image_file))
-    imshow(output_image)
-    #plt.show(output_image)
+    plt.imshow(output_image)
+    plt.show()
     
     return out_scores, out_boxes, out_classes
 
