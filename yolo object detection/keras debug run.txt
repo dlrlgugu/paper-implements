@@ -1,0 +1,1 @@
+k.get_session().run(k.argmax(a,axis=-1))
