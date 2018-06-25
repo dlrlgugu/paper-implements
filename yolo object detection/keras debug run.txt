@@ -1,1 +1,3 @@
+from keras import backend as k
+ 
 k.get_session().run(k.argmax(a,axis=-1))

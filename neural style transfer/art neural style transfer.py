@@ -9,7 +9,7 @@ from nst_utils import *
 import numpy as np
 import tensorflow as tf
 
-#model = load_vgg_model("imagenet-vgg-verydeep-19.mat")
+model = load_vgg_model("imagenet-vgg-verydeep-19.mat")
 #print(model)
 
 content_image = scipy.misc.imread("dog.jpg")
@@ -124,11 +124,16 @@ with tf.Session() as test:
 tf.reset_default_graph()
 
 # Start interactive session
-sess = tf.InteractiveSession()
+
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 
 config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
+
 config.gpu_options.allocator_type ='BFC'
-config.gpu_options.per_process_gpu_memory_fraction = 0.90
+config.gpu_options.per_process_gpu_memory_fraction = 0.50
+
+sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
 
 im = Image.open("dog.jpg")
 img=im.resize((400,300))
@@ -180,14 +185,14 @@ optimizer = tf.train.AdamOptimizer(2.0)
 # define train_step (1 line)
 train_step = optimizer.minimize(J)
 
-def model_nn(sess, input_image, num_iterations = 100):
+def model_nn(sess, input_image, num_iterations = 1):
     sess.run(tf.global_variables_initializer())
     sess.run(model['input'].assign(input_image))
 
     for i in range(num_iterations):
         _ = sess.run(train_step)
         generated_image = sess.run(model['input'])
-
+        """    
         if i%20 == 0:
             Jt, Jc, Js = sess.run([J, J_content, J_style])
             print("Iteration " + str(i) + " :")
@@ -196,7 +201,8 @@ def model_nn(sess, input_image, num_iterations = 100):
             print("style cost = " + str(Js))
 
             save_image(str(i) + ".png", generated_image)
-
+        """
+        Jt, Jc, Js = sess.run([J, J_content, J_style])
         save_image('generated_image.jpg', generated_image)
 
     return generated_image

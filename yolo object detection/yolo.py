@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import tensorflow as tf
+import cv2
 from keras import backend as K
 from keras.layers import Input, Lambda, Conv2D
 from keras.models import load_model, Model
@@ -28,7 +29,7 @@ def yolo_filter_boxes(box_confidence, boxes, box_class_probs, threshold = .6):
     classes = tf.boolean_mask(box_classes,filtering_mask)
 
     return scores,boxes,classes
-
+"""
 with tf.Session() as test_a:
     box_confidence = tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1)
     boxes = tf.random_normal([19, 19, 5, 4], mean=1, stddev=4, seed = 1)
@@ -40,7 +41,7 @@ with tf.Session() as test_a:
     print("scores.shape = " + str(scores.shape))
     print("boxes.shape = " + str(boxes.shape))
     print("classes.shape = " + str(classes.shape))
-
+"""
 
 def iou(box1, box2):
     xi1 = np.max([box1[0],box2[0]])
@@ -57,11 +58,11 @@ def iou(box1, box2):
                  
     return iou
 
-
+"""
 box1 = (2, 1, 4, 3)
 box2 = (1, 2, 3, 4) 
 print("iou = " + str(iou(box1, box2)))
-
+"""
 def yolo_non_max_suppression(scores, boxes, classes, max_boxes = 10, iou_threshold = 0.5):
     max_boxes_tensor = K.variable(max_boxes, dtype='int32')     # tensor to be used in tf.image.non_max_suppression()
     K.get_session().run(tf.variables_initializer([max_boxes_tensor])) # initialize variable max_boxes_tensor
@@ -73,7 +74,7 @@ def yolo_non_max_suppression(scores, boxes, classes, max_boxes = 10, iou_thresho
     classes = K.gather(classes,nms_indices)
 
     return scores, boxes, classes
-
+"""
 with tf.Session() as test_b:
     scores = tf.random_normal([54,], mean=1, stddev=4, seed = 1)
     boxes = tf.random_normal([54, 4], mean=1, stddev=4, seed = 1)
@@ -85,7 +86,7 @@ with tf.Session() as test_b:
     print("scores.shape = " + str(scores.eval().shape))
     print("boxes.shape = " + str(boxes.eval().shape))
     print("classes.shape = " + str(classes.eval().shape))
-
+"""
 def yolo_eval(yolo_outputs, image_shape = (720., 1280.), max_boxes=10, score_threshold=.6, iou_threshold=.5):
     # Retrieve outputs of the YOLO model (≈1 line)
     box_confidence, box_xy, box_wh, box_class_probs = yolo_outputs
@@ -105,7 +106,7 @@ def yolo_eval(yolo_outputs, image_shape = (720., 1280.), max_boxes=10, score_thr
     return scores, boxes, classes
 
 
-
+"""
 with tf.Session() as test_b:
     yolo_outputs = (tf.random_normal([19, 19, 5, 1], mean=1, stddev=4, seed = 1),
                     tf.random_normal([19, 19, 5, 2], mean=1, stddev=4, seed = 1),
@@ -119,19 +120,8 @@ with tf.Session() as test_b:
     print("boxes.shape = " + str(boxes.eval().shape))
     print("classes.shape = " + str(classes.eval().shape))
     
+"""
 
-
-sess = K.get_session()
-class_names = read_classes("coco_classes.txt")
-anchors = read_anchors("yolo_anchors.txt")
-image_shape = (720., 1280.)    
-
-yolo_model = load_model("yolo.h5")
-
-yolo_model.summary()
-
-yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
-scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
 
 
 def predict(sess, image_file):
@@ -172,11 +162,27 @@ def predict(sess, image_file):
     image.save(os.path.join("out", image_file), quality=90)
     # Display the results in the notebook
     output_image = scipy.misc.imread(os.path.join("out", image_file))
-    plt.imshow(output_image)
-    plt.show()
-    
+    #cv2.startWindowThread()
+    #cv2.namedWindow("preview")
+    cv2.imshow('ImageWindow',output_image)
+    #plt.show()
+    cv2.waitKey()
     return out_scores, out_boxes, out_classes
 
-out_scores, out_boxes, out_classes = predict(sess, "test1.jpg")
 
+sess = K.get_session()
+class_names = read_classes("coco_classes.txt")
+anchors = read_anchors("yolo_anchors.txt")
+image_shape = (720., 1280.)    
 
+yolo_model = load_model("yolo.h5")
+
+#print(yolo_model.summary())
+
+yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
+#box_confidence, box_xy, box_wh, box_class_probs
+scores, boxes, classes = yolo_eval(yolo_outputs, image_shape)
+# boxes, scores, classes
+out_scores, out_boxes, out_classes = predict(sess, "test.jpg")
+
+print(out_boxes)
