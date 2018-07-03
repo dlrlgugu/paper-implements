@@ -10,3 +10,8 @@ yolo - https://arxiv.org/abs/1506.02640
 	https://arxiv.org/abs/1612.08242
 #CNN
 neural style transfer - https://arxiv.org/abs/1508.06576 
+
+
+#GAN
+https://arxiv.org/pdf/1701.00160.pdf
+holy moly..
